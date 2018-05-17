@@ -14,6 +14,7 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 const fs = require("fs");
 const config = require("./config.json");
+const msg = require("./utils/msg.js")
 
 client.colors = require("./servers.json");
 
@@ -23,7 +24,7 @@ client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}!`);
 
     setInterval(function() {
-        client.user.setPresence({ game: { name: "c!help | " + client.guilds.size + " Servers! | https://discord.gg/jXqDWaE", url: "https://www.twitch.tv/ProESTGaming", type: 1 } });
+        client.user.setPresence({ game: { name: "c!help | " + client.guilds.size + " Servers! | " + client.users.size + " Users!", url: "https://www.twitch.tv/ProESTGaming", type: 1 } });
     //Update every 30 seconds
     }, 30 * 1000);
 
@@ -41,17 +42,7 @@ client.on("ready", async () => {
         for(let i in client.colors) {
             let guildId = client.colors[i].guild;
             let guild = client.guilds.get(guildId);
-            let date = client.colors[i].date;
 
-
-            //if 72 hours have passed, remove from config
-            if(date < new Date().getTime() - 259200000) {
-                 delete client.colors[i];
-                 fs.writeFile("./servers.json", JSON.stringify(client.colors, null, 4), err => {
-                    if(err) throw err;
-                });
-                return;
-            }
 
             //if server gets deleted or bot gets kicked, remove from config
             if(guild === null) {
@@ -81,8 +72,8 @@ client.on("ready", async () => {
                 return;
             }
         }
-        //Every 10 seconds change it
-    }, 10 * 1000)
+        //Change it every 3 seconds
+    }, 3 * 1000)
 });
 
 client.on("message", async message =>{
@@ -99,73 +90,37 @@ client.on("message", async message =>{
     if(message.channel.type === "dm") return;
 
 
-    if(command === "help") {
-        const embed = new Discord.RichEmbed()
-        .setTitle(":tools: Help")
-        .setColor(0x009688)
-        .setDescription("Shows commands for the bot!")
-        .addField(":bulb: General commands", 
-        "**`c!rainbow`** - Taste the rainbow!\n" + 
-        "**`c!ping`** - Why is the bot slow?\n" + 
-        "**`c!stats`** - Bot's stats!")
-
-        .addField(":skull: Bot's owner commands" ,
-        "**`c!eval`** - Tasty code!\n" +
-        "**`c!createInvite`** - Creates invites for servers!")
-
-        .addField(":thinking: Suggestions", 
-        "Please suggest more commands for this bot, also you can join the offical discord! https://discord.gg/jXqDWaE")
-        message.channel.send({embed});
-
-    }
+    if(command === "help")
+        return msg.help(message);
 
 
-    if(command === "stats") {
-        var time = process.uptime();
-        var uptime = (time + "").toHHMMSS();
-
-        const embed = new Discord.RichEmbed()
-        .setTitle(":tools: Stats")
-        .setColor(0x009688)
-        .setDescription( 
-        ":crown: " +              "Servers: " + client.guilds.size + "\n" + 
-        ":bust_in_silhouette: " + "Users: " + client.users.size + "\n" + 
-        ":clock12: " +            "Uptime: " + uptime)
-        message.channel.send({embed});
-    }
-
-
-    if(command === "ping") {
-        const embed = new Discord.RichEmbed()
-        .setTitle(":tools: Ping")
-        .setColor(0x009688)
-        .setDescription("Ping: `" + Math.round(client.ping) + "ms`")
-        message.channel.send({embed});
-    }
+    if(command === "ping")
+        return msg.info(message, "Ping: `" + Math.round(client.ping) + "ms`");
 
 	
 	if(command === "eval") {
         if(message.author.id !== config.ownerid) return;
-        try{
-            eval(args.join(" "));
-        }catch(err){
-            message.channel.send("srry left syntax in other pant")
+			try{
+				eval(args.join(" "));
+			}catch(err){
+				message.channel.send("srry left syntax in other pant")
         }
     }
 
-    //Sends the quit shit in every server and serches channels that it can send to, copy pasted
+    /*Sends the quit shit in every server and serches channels that it can send to, copy pasted
     if(command === "quit") {
         if(message.author.id !== config.ownerid) return;
-        var guildList = client.guilds.array();
-            guildList.forEach(guild => {
-                 guild.channels
-                 .filter(c => c.type === "text" &&
-                   c.permissionsFor(guild.client.user).has("SEND_MESSAGES"))
-                 .sort((a, b) => a.position - b.position ||
-                   Long.fromString(a.id).sub(Long.fromString(b.id)).toNumber())
-                 .first().send("Hey @everyone, I will stop making this bot, since I don't know how to code very well and its hard for be to keep making it better, this started out as a project at first and I didn't expect to have more than 30 servers, but you guys crushed 300 servers! Thank you so much for using it!\n\n  -ItzNop")
+			var guildList = client.guilds.array();
+				guildList.forEach(guild => {
+					guild.channels
+					.filter(c => c.type === "text" &&
+					c.permissionsFor(guild.client.user).has("SEND_MESSAGES"))
+					.sort((a, b) => a.position - b.position ||
+					Long.fromString(a.id).sub(Long.fromString(b.id)).toNumber())
+					.first().send("Rainbow bot's code since im quitting: https://github.com/ItzNop/Rainbow-Colors-BOT")
                 });
     }
+    */
 
     if(command === "createInvite") {
         //owner check
@@ -184,65 +139,34 @@ client.on("message", async message =>{
 
 
     if(command === "rainbow") {
-        if(!message.member.hasPermission("ADMINISTRATOR")) {
-            const embed = new Discord.RichEmbed()
-            .setAuthor("Rainbow", client.user.avatarURL)
-            .setColor(0xF44336)
-            .setDescription("You must have the administrator permission!")
-            message.channel.send({embed});
-            return;
-        }
-
-        if(!message.guild.me.hasPermission("ADMINISTRATOR")) {
-            const embed = new Discord.RichEmbed()
-            .setAuthor("Rainbow", client.user.avatarURL)
-            .setColor(0xF44336)
-            .setDescription("I must have the administrator permission!")
-            message.channel.send({embed});
-            return;
-        }
-		
-		if(!message.member.guild.roles.find("name", args.join(" "))) {
-            const embed = new Discord.RichEmbed()
-            .setAuthor("Rainbow", client.user.avatarURL)
-            .setColor(0xF44336)
-            .setDescription("Usage: **`c!rainbow (role name)`**")
-            message.channel.send({embed});
-            return;
-        }
-
-        if(message.member.guild.roles.find("name", args.join(" ")) === null) {
-            const embed = new Discord.RichEmbed()
-            .setAuthor("Rainbow", client.user.avatarURL)
-            .setColor(0xF44336)
-            .setDescription("Something went wrong.")
-            message.channel.send({embed});
-            return;
-        }
+        if(!message.member.hasPermission("ADMINISTRATOR"))
+            return msg.error(message, "You must have the **`ADMINISTRATOR`** permission!")
 
 
-        if(message.member.guild.roles.find("name", args.join(" ")).position >= message.guild.me.highestRole.position) {
-            const embed = new Discord.RichEmbed()
-            .setAuthor("Rainbow", client.user.avatarURL)
-            .setColor(0xF44336)
-            .setDescription("Rainbow Colors role must be higher than the mentioned role!")
-            message.channel.send({embed});
-            return;
-        }
+        if(!message.guild.me.hasPermission("ADMINISTRATOR"))
+            return msg.error(message, "I must have the **`ADMINISTRATOR`** permissions!")
+        
+            
+        if(!message.member.guild.roles.find("name", args.join(" ")))
+            return msg.error(message, "Usage: **`c!rainbow (role name)`**");
 
 
-        const embed = new Discord.RichEmbed()
-        .setAuthor("Rainbow", client.user.avatarURL)
-        .setColor(0x4CAF50)
-        .setDescription("Successfully applied rainbow colors to **`" + args.join(" ") + "`**" + "\n" +
-        "Note: this only lasts 72 hours, then it will stop. You can still apply it whenever you'd like!")
-        message.channel.send({embed});
+        if(!message.member.guild.roles.find("name", args.join(" ")))
+            return msg.error(message, "Something went wrong");
+
+
+        if(message.member.guild.roles.find("name", args.join(" ")).position >= message.guild.me.highestRole.position)
+            return msg.error(message, "My highgest role must be higher than the mentioned role!")
+
+
+        msg.success(message, "Successfully applied rainbow colors to **`" + args.join(" ") + "`**")
 
         client.colors[message.guild.name] = {
             guild: message.guild.id,
-            role: args.join(" "),
-            date: new Date().getTime()
+            role: args.join(" ")
         }
+
+        
 
         fs.writeFile("./servers.json", JSON.stringify(client.colors, null, 4), err => {
             if(err) throw err;
@@ -275,20 +199,6 @@ function hslToRgb(h, s, l){
     }
 
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
-}
-
-//uptime junk copy pasted from stackoverflow (ofc)
-String.prototype.toHHMMSS = function () {
-    var sec_num = parseInt(this, 10);
-    var hours   = Math.floor(sec_num / 3600);
-    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-    var seconds = sec_num - (hours * 3600) - (minutes * 60);
-
-    if (hours   < 10) {hours   = "0"+hours;}
-    if (minutes < 10) {minutes = "0"+minutes;}
-    if (seconds < 10) {seconds = "0"+seconds;}
-    var time    = hours+':'+minutes+':'+seconds;
-    return time;
 }
 
 //login with this shitty code
