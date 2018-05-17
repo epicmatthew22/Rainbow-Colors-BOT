@@ -41,7 +41,7 @@ module.exports.help = (message, msg) => {
 
     .setDescription("Shows commands for the bot!")
     .addField(":bulb: General commands", 
-    "**`c!rainbow`** - Taste the rainbow!\n" + 
+    "**`c!rainbow`** - Make roles rainbow!\n" + 
     "**`c!ping`** - Why is the bot slow?")
 
     .addField(":skull: Bot's owner commands" ,
