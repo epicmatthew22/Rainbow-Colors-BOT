@@ -14,6 +14,7 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 const fs = require("fs");
 const config = require("./config.json");
+const sf = require("snekfetch")
 const msg = require("./utils/msg.js")
 
 client.colors = require("./servers.json");
@@ -24,7 +25,7 @@ client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}!`);
 
     setInterval(function() {
-        client.user.setPresence({ game: { name: "c!help | " + client.guilds.size + " Servers! | " + client.users.size + " Users!", url: "https://www.twitch.tv/ProESTGaming", type: 1 } });
+        client.user.setPresence({ game: { name: config.prefix + "help | " + client.guilds.size + " Servers! | " + client.users.size + " Users!", url: "https://www.twitch.tv/ProESTGaming", type: 1 } });
     //Update every 30 seconds
     }, 30 * 1000);
 
@@ -32,7 +33,7 @@ client.on("ready", async () => {
     client.setInterval(() =>{
 
         //adding this so it doesnt start doing weird stuff
-        if(rainbow > 1) {
+        if(rainbow > 0.9) { //0.9 for perfect loop
             rainbow = 0
         }else{
             rainbow += 0.01;
@@ -72,20 +73,20 @@ client.on("ready", async () => {
                 return;
             }
         }
-        //Change it every 3 seconds
-    }, 3 * 1000)
+        //Change it every 5 seconds
+    }, 5 * 1000)
 });
 
 client.on("message", async message =>{
 
 
-    //Does stuff and removes first 2 chars and shit
-    let command = message.content.split(" ")[0].slice(2);
+    //Does stuff and removes char length
+    let command = message.content.split(" ")[0].slice(config.prefix.length);
     let args = message.content.split(" ").slice(1);
     //let mention = message.guild.member(message.mentions.users.first());
 
 
-    if(!message.content.startsWith("c!")) return;
+    if(!message.content.startsWith(config.prefix)) return;
     if(message.author.bot) return;
     if(message.channel.type === "dm") return;
 
@@ -107,20 +108,6 @@ client.on("message", async message =>{
         }
     }
 
-    /*Sends the quit shit in every server and serches channels that it can send to, copy pasted
-    if(command === "quit") {
-        if(message.author.id !== config.ownerid) return;
-			var guildList = client.guilds.array();
-				guildList.forEach(guild => {
-					guild.channels
-					.filter(c => c.type === "text" &&
-					c.permissionsFor(guild.client.user).has("SEND_MESSAGES"))
-					.sort((a, b) => a.position - b.position ||
-					Long.fromString(a.id).sub(Long.fromString(b.id)).toNumber())
-					.first().send("Rainbow bot's code since im quitting: https://github.com/ItzNop/Rainbow-Colors-BOT")
-                });
-    }
-    */
 
     if(command === "createInvite") {
         //owner check
@@ -133,12 +120,14 @@ client.on("message", async message =>{
         try{
             client.guilds.find("name", args.join(" ")).channels.find("name", channel).createInvite().then(invite => message.channel.send("Invite: https://discord.gg/" + invite.code))
         }catch(err){
-            message.channel.send("Something went wrong, Usage: server, channel")
+            message.channel.send("Something went wrong, Usage: (server, channel)")
         }
     }
 
 
     if(command === "rainbow") {
+        let rainbowRole = args.join(" ");
+
         if(!message.member.hasPermission("ADMINISTRATOR"))
             return msg.error(message, "You must have the **`ADMINISTRATOR`** permission!")
 
@@ -147,23 +136,19 @@ client.on("message", async message =>{
             return msg.error(message, "I must have the **`ADMINISTRATOR`** permissions!")
         
             
-        if(!message.member.guild.roles.find("name", args.join(" ")))
-            return msg.error(message, "Usage: **`c!rainbow (role name)`**");
+        if(!message.member.guild.roles.find("name", rainbowRole))
+            return msg.error(message, "Usage: **`(role name)`**");
 
 
-        if(!message.member.guild.roles.find("name", args.join(" ")))
-            return msg.error(message, "Something went wrong");
-
-
-        if(message.member.guild.roles.find("name", args.join(" ")).position >= message.guild.me.highestRole.position)
+        if(message.member.guild.roles.find("name", rainbowRole).position >= message.guild.me.highestRole.position)
             return msg.error(message, "My highgest role must be higher than the mentioned role!")
 
 
-        msg.success(message, "Successfully applied rainbow colors to **`" + args.join(" ") + "`**")
+        msg.success(message, "Successfully applied rainbow colors to **`" + rainbowRole + "`**")
 
         client.colors[message.guild.name] = {
             guild: message.guild.id,
-            role: args.join(" ")
+            role: rainbowRole
         }
 
         
@@ -171,6 +156,31 @@ client.on("message", async message =>{
         fs.writeFile("./servers.json", JSON.stringify(client.colors, null, 4), err => {
             if(err) throw err;
         });
+    }
+
+
+    if(command === "cat") {
+        sf.get("http://aws.random.cat/meow")
+            .then(res => {
+                msg.picture(message, res.body.file)
+                //console.log(res.text)
+            })
+    }
+
+
+    if(command === "shibe") {
+        sf.get("http://shibe.online/api/shibes?count=1&urls=true&httpsUrls=true")
+            .then(res => {
+                msg.picture(message, res.body[0])
+            })
+    }
+
+
+    if(command === "dog") {
+        sf.get("https://random.dog/woof.json")
+            .then(res => {
+                msg.picture(message, res.body.url)
+            })
     }
 });
 

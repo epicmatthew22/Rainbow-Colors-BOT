@@ -1,11 +1,10 @@
 const Discord = require("discord.js");
-const config = require("../config.json")
-const fs = require("fs");
-const color = require("./colors.json")
+const color = require("./colors.json");
+const help = require("./helpcommand.js");
 
 module.exports.success = (message, msg) => {
     let embed = new Discord.RichEmbed()
-    .setAuthor(message.author.tag, message.author.avatarURL)
+    .setAuthor("Requested by " + message.author.tag, message.author.avatarURL)
     .setColor(color.green)
     .setTitle("Success!")
     .setDescription(msg)
@@ -13,9 +12,18 @@ module.exports.success = (message, msg) => {
     message.channel.send(embed);
 }
 
+module.exports.picture = (message, picture) => {
+    let embed = new Discord.RichEmbed()
+    .setAuthor("Requested by " + message.author.tag, message.author.avatarURL)
+    .setColor(color.green)
+    .setImage(picture)
+
+    message.channel.send(embed);
+}
+
 module.exports.error = (message, error) => {
     let embed = new Discord.RichEmbed()
-    .setAuthor(message.author.tag, message.author.avatarURL)
+    .setAuthor("Requested by " + message.author.tag, message.author.avatarURL)
     .setColor(color.red)
     .setTitle("An error has occured!")
     .setDescription(error)
@@ -25,9 +33,8 @@ module.exports.error = (message, error) => {
 
 module.exports.info = (message, msg) => {
     let embed = new Discord.RichEmbed()
-    .setAuthor(message.author.tag, message.author.avatarURL)
+    .setAuthor("Requested by " + message.author.tag, message.author.avatarURL)
     .setColor(color.blue)
-    //.setTitle("Thi")
     .setDescription(msg)
 
     message.channel.send(embed);
@@ -35,18 +42,23 @@ module.exports.info = (message, msg) => {
 
 module.exports.help = (message, msg) => {
     let embed = new Discord.RichEmbed()
-    .setAuthor(message.author.tag, message.author.avatarURL)
+    .setAuthor("Requested by " + message.author.tag, message.author.avatarURL)
     .setTitle("Commands!")
     .setColor(color.blue)
 
     .setDescription("Shows commands for the bot!")
     .addField(":bulb: General commands", 
-    "**`c!rainbow`** - Make roles rainbow!\n" + 
-    "**`c!ping`** - Why is the bot slow?")
+    help.command("rainbow", "Rainbow roles!") +
+    help.command("ping", "Displays bot's ping to discord"))
+
+    .addField(":seedling: Animal commands",
+    help.command("cat", "Shows a random cat") +
+    help.command("shibe", "Shows a random shibe") +
+    help.command("dog", "Shows a random dog"))
 
     .addField(":skull: Bot's owner commands" ,
-    "**`c!eval`** - Tasty code!\n" +
-    "**`c!createInvite`** - Creates invites for servers!")
+    help.command("eval", "Execute code") +
+    help.command("createInvite", "Creates invites for servers"))
         
     .setColor(color.blue)
 
