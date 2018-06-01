@@ -163,7 +163,6 @@ client.on("message", async message =>{
         sf.get("http://aws.random.cat/meow")
             .then(res => {
                 msg.picture(message, res.body.file)
-                //console.log(res.text)
             })
     }
 
