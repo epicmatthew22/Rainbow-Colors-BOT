@@ -26,18 +26,14 @@ client.on("ready", async () => {
 
     setInterval(function() {
         client.user.setPresence({ game: { name: config.prefix + "help | " + client.guilds.size + " Servers! | " + client.users.size + " Users!", url: "https://www.twitch.tv/ProESTGaming", type: 1 } });
-    //Update every 30 seconds
-    }, 30 * 1000);
+    //Update every 60 seconds
+    }, 60 * 1000);
 
 
     client.setInterval(() =>{
 
-        //adding this so it doesnt start doing weird stuff
-        if(rainbow > 0.9) { //0.9 for perfect loop
-            rainbow = 0
-        }else{
-            rainbow += 0.01;
-        }
+        rainbow += 0.01;
+        if(rainbow >= 1) rainbow = 0;
 
         //try to change role color for every server
         for(let i in client.colors) {
@@ -99,7 +95,7 @@ client.on("message", async message =>{
         return msg.info(message, "Ping: `" + Math.round(client.ping) + "ms`");
 
 	
-	if(command === "eval") {
+    if(command === "eval") {
         if(message.author.id !== config.ownerid) return;
 			try{
 				eval(args.join(" "));
@@ -176,7 +172,7 @@ client.on("message", async message =>{
 
 
     if(command === "dog") {
-        sf.get("https://random.dog/woof.json")
+        sf.get("http://random.dog/woof.json")
             .then(res => {
                 msg.picture(message, res.body.url)
             })

@@ -15,7 +15,7 @@ module.exports.success = (message, msg) => {
 module.exports.picture = (message, picture) => {
     let embed = new Discord.RichEmbed()
     .setAuthor("Requested by " + message.author.tag, message.author.avatarURL)
-    .setColor(color.green)
+    .setColor(color.purple)
     .setImage(picture)
 
     message.channel.send(embed);
